@@ -1,7 +1,7 @@
 from pywebio.input import input, DATE, NUMBER, actions, checkbox, input_group
 from pywebio.output import put_info, put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_link, put_html, put_image
 from main import flashscore
-from datetime import datetime
+from datetime import datetime, time, date
 
 def check_date(date):
     if date == "":
@@ -29,10 +29,6 @@ def smart_monitor():
                 search_list = flashscore.get_matchs(num)
                 i = 0
                 n = len(search_list)
-                with open('img\\green.png', 'rb') as file:
-                    img_green = file.read()
-                with open('img\\yellow.png', 'rb') as file:
-                    img_yellow = file.read()
                 for id in search_list:
                     i = i + 1
                     set_progressbar('bar', i / n)
@@ -70,20 +66,23 @@ def smart_monitor():
                     if min_goals <= k1 <= max_goals and min_goals <= k2 <= max_goals and min_goals <= k1_home <= max_goals and min_goals <= k2_away <= max_goals and (k1 != 0 and k2 != 0 and k1_home != 0 and k2_away != 0):
 
                         if 1 <= k1 <= 20 and 1 <= k2 <= 20 and 1 <= k1_home <= 20 and 1 <= k2_away <= 20:
-                            img = img_green
-                        elif 20 < k1 <= 22 and 20 < k2 <= 22 and 20 < k1_home <= 22 and 20 < k2_away <= 22:
-                            img = img_yellow
+                            img = "https://i.ibb.co/4JDXYkH/green.png"
+                        else:
+                            img = "https://i.ibb.co/pbpz6zr/yellow.png"
+                        
 
                         link = f"https://www.flashscorekz.com/match/{id[0]}/#/match-summary"
                         name = id[1] + " - " + id[2]
                         commands = '<a href="' + link + '" target="_blank">' + name + '</a>'
-                        table_data_list.append([
-                            str(id[3]).split(" ")[0],
-                            str(id[3]).split(" ")[1],
-                            id[4],
-                            put_html(commands),
-                            put_image(img)
-                            ])
+                        
+                        if  datetime.now() < id[3]:
+                            table_data_list.append([
+                                id[3].date(),
+                                id[3].time(),
+                                id[4],
+                                put_html(commands),
+                                put_image(img)
+                                ])
                 
                 put_table(table_data_list, header=[
                     "Дата",
