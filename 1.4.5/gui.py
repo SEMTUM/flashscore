@@ -1,5 +1,5 @@
 from pywebio.input import input, DATE, FLOAT, actions, input_group
-from pywebio.output import put_info, put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_html, put_image
+from pywebio.output import put_info, put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_html, put_error
 from main import flashscore
 from datetime import datetime
 
@@ -111,36 +111,50 @@ def smart_monitor():
                                 k2_goal_away_sum = 0
                                 k2_lost_away_sum = 0
                     
-                    if (k1_goal >= k1_goal_sum / 10
-                        and k1_lost >= k1_lost_sum / 10
-                        and k1_goal_home >= k1_goal_home_sum / 10
-                        and k1_lost_home >= k1_lost_home_sum / 10
-                        and k2_goal >= k2_goal_sum / 10
-                        and k2_lost >= k2_lost_sum / 10
-                        and k2_goal_away >= k2_goal_away_sum / 10
-                        and k2_lost_away >= k2_lost_away / 10
+                    if (k1_goal_sum != 0 
+                        and k1_lost_sum != 0 
+                        and k1_goal_home_sum != 0
+                        and k1_lost_home_sum != 0
+                        and k2_goal_sum != 0
+                        and k2_lost_sum != 0
+                        and k2_goal_away_sum != 0
+                        and k2_lost_away_sum != 0
                         ):
 
-                        link = f"https://www.flashscorekz.com/match/{id[0]}/#/match-summary"
-                        name = id[1] + " - " + id[2]
-                        commands = '<a href="' + link + '" target="_blank">' + name + '</a>'
+                        if (k1_goal >= k1_goal_sum / 10
+                            and k1_lost >= k1_lost_sum / 10
+                            and k1_goal_home >= k1_goal_home_sum / 10
+                            and k1_lost_home >= k1_lost_home_sum / 10
+                            and k2_goal >= k2_goal_sum / 10
+                            and k2_lost >= k2_lost_sum / 10
+                            and k2_goal_away >= k2_goal_away_sum / 10
+                            and k2_lost_away >= k2_lost_away / 10
+                            ):
 
-                        if  datetime.now() < id[3]:
-                            table_data_list.append([
-                                id[3].date(),
-                                id[3].time(),
-                                id[4],
-                                put_html(commands)
-                                ])
+                            link = f"https://www.flashscorekz.com/match/{id[0]}/#/match-summary"
+                            name = id[1] + " - " + id[2]
+                            commands = '<a href="' + link + '" target="_blank">' + name + '</a>'
+
+                            if  datetime.now() < id[3]:
+                                table_data_list.append([
+                                    id[3].date(),
+                                    id[3].time(),
+                                    id[4],
+                                    put_html(commands)
+                                    ])
             
             clear_scope('scope1')
-            with use_scope('scope1'):
-                put_table(table_data_list, header=[
-                    "Дата",
-                    "Время",
-                    "Лига",
-                    "Матч"
-                    ])
+            if table_data_list != []:
+                with use_scope('scope1'):
+                    put_table(table_data_list, header=[
+                        "Дата",
+                        "Время",
+                        "Лига",
+                        "Матч"
+                        ])
+            else:
+                with use_scope('scope1'):
+                    put_error("Нет данных по указанным параметрам!")
 
             actions(buttons=["Новый запрос"])
 
