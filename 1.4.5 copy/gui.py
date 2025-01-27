@@ -4,7 +4,7 @@ from pywebio.output import put_info, put_table, put_progressbar, set_progressbar
 from main import flashscore
 from datetime import datetime
 
-config(title="FlashScore", css_style="#output-container{margin: 0 auto; max-width: 1200px;} #input-cards{max-width: 1200px;}")
+config(title="FlashScore 1.4.5 (mirror)", css_style="#output-container{margin: 0 auto; max-width: 1200px;} #input-cards{max-width: 1200px;}")
 
 def check_date(date):
     if date == "":
@@ -113,7 +113,7 @@ def smart_monitor():
                             except:
                                 k2_goal_away_sum = 0
                                 k2_lost_away_sum = 0
-                    
+
                     if (k1_goal_sum != 0 
                         and k1_lost_sum != 0 
                         and k1_goal_home_sum != 0
@@ -124,14 +124,14 @@ def smart_monitor():
                         and k2_lost_away_sum != 0
                         ):
 
-                        if (k1_goal <= k1_goal_sum / 10
-                            and k1_lost <= k1_lost_sum / 10
-                            and k1_goal_home <= k1_goal_home_sum / 10
-                            and k1_lost_home <= k1_lost_home_sum / 10
-                            and k2_goal <= k2_goal_sum / 10
-                            and k2_lost <= k2_lost_sum / 10
-                            and k2_goal_away <= k2_goal_away_sum / 10
-                            and k2_lost_away <= k2_lost_away / 10
+                        if (float(k1_goal) <= float(k1_goal_sum / 10)
+                            and float(k1_lost) <= float(k1_lost_sum / 10)
+                            and float(k1_goal_home) <= float(k1_goal_home_sum / 10)
+                            and float(k1_lost_home) <= float(k1_lost_home_sum / 10)
+                            and float(k2_goal) <= float(k2_goal_sum / 10)
+                            and float(k2_lost) <= float(k2_lost_sum / 10)
+                            and float(k2_goal_away) <= float(k2_goal_away_sum / 10)
+                            and float(k2_lost_away) <= float(k2_lost_away_sum / 10)
                             ):
 
                             link = f"https://www.flashscorekz.com/match/{id[0]}/#/match-summary"

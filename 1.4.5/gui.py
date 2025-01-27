@@ -1,7 +1,10 @@
+from pywebio.platform import config
 from pywebio.input import input, DATE, FLOAT, actions, input_group
 from pywebio.output import put_info, put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_html, put_error, put_warning
 from main import flashscore
 from datetime import datetime
+
+config(title="FlashScore 1.4.5)", css_style="#output-container{margin: 0 auto; max-width: 1200px;} #input-cards{max-width: 1200px;}")
 
 def check_date(date):
     if date == "":
@@ -141,7 +144,7 @@ def smart_monitor():
                             and k2_goal >= k2_goal_sum / 10
                             and k2_lost >= k2_lost_sum / 10
                             and k2_goal_away >= k2_goal_away_sum / 10
-                            and k2_lost_away >= k2_lost_away / 10
+                            and k2_lost_away >= k2_lost_away_sum / 10
                             ):
 
                             link = f"https://www.flashscorekz.com/match/{id[0]}/#/match-summary"
