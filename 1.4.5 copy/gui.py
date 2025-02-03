@@ -1,6 +1,6 @@
 from pywebio.platform import config
 from pywebio.input import input, DATE, FLOAT, actions, input_group
-from pywebio.output import put_info, put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_html, put_error
+from pywebio.output import put_info, put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_html, put_error, put_warning
 from main import flashscore
 from datetime import datetime
 
@@ -56,9 +56,22 @@ def smart_monitor():
                 for id in search_list:
                     i = i + 1
                     set_progressbar('bar', i / n)
-                    detail = flashscore.get_total_goals(str(id[0]))
-                    command_1 = detail[0][0].split(": ")[1]
-                    command_2 = detail[1][0].split(": ")[1]
+                    while True:
+                        try:
+                            detail = flashscore.get_total_goals(str(id[0]))
+                            if detail:
+                                break
+                        except Exception as e:
+                            with use_scope('scope1'):
+                                put_warning(e)
+                    try:           
+                        command_1 = detail[0][0].split(": ")[1]
+                    except:
+                        command_1 = "None_command_1_games"
+                    try:
+                        command_2 = detail[1][0].split(": ")[1]
+                    except:
+                        command_2 = "None_command_2_games"
                     k1_goal_sum = 0
                     k1_lost_sum = 0
                     k2_goal_sum = 0
