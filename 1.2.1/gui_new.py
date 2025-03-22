@@ -12,11 +12,11 @@ def smart_monitor():
             clear_scope('scope1')
             data = input_group("Настройки отбора",[
                 input("За какой день вы хотите получить данные по играм", type=DATE, validate=check_date, name="date"),
-                checkbox(options={"Добавить фильтр по счёту (Только 0:0 или 1:1)"}, name="select")
+                checkbox(options={"Добавить фильтр по счёту (Только 0:0)"}, name="select")
             ])
             search_date = datetime.strptime(data["date"], '%Y-%m-%d')
             selection = data["select"]
-            selectionn_list = ["1 : 1", "0 : 0"]
+            selectionn_list = ["0 : 0"]
             table_data_list = []
             now = str(datetime.now())[:10]
             today = datetime.strptime(now, '%Y-%m-%d')
