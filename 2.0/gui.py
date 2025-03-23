@@ -101,7 +101,7 @@ def smart_monitor():
                         goal_k1_away = k1_goal_away_sum * 2
                         k1_gained_points = (goal_k1_home + goal_k1_away) / 5
                         lost_k1_home = k1_lost_home_sum * 1.5
-                        lost_k1_away = k1_lost_away_sum * 2
+                        lost_k1_away = k1_lost_away_sum * 1
                         k1_lost_points = (lost_k1_home + lost_k1_away) / 5
                         k1_points = (k1_gained_points + k1_lost_points) / 2
 
@@ -109,12 +109,20 @@ def smart_monitor():
                         goal_k2_away = k2_goal_away_sum * 2
                         k2_gained_points = (goal_k2_home + goal_k2_away) / 5
                         lost_k2_home = k2_lost_home_sum * 1.5
-                        lost_k2_away = k2_lost_away_sum * 2
+                        lost_k2_away = k2_lost_away_sum * 1
                         k2_lost_points = (lost_k2_home + lost_k2_away) / 5
                         k2_points = (k2_gained_points + k2_lost_points) / 2
+                        
 
                         points = (k1_points + k2_points) / 2
-                        #print(id[0], points)
+                        
+                        # print(id[0], points)
+                        # print(k1_goal_home_sum, k1_goal_away_sum, k1_lost_home_sum, k1_lost_away_sum, goal_k1_home, goal_k1_away, lost_k1_home, lost_k1_away)
+                        # print(k2_goal_home_sum, k2_goal_away_sum, k2_lost_home_sum, k2_lost_away_sum, goal_k2_home, goal_k2_away, lost_k2_home, lost_k2_away)
+                        # print(k1_gained_points, k1_lost_points)
+                        # print(k2_gained_points, k2_lost_points)
+                        # print(k1_points, k2_points)
+                        # print(points)
 
 
                         if (float(points) > coefficient):
@@ -128,7 +136,8 @@ def smart_monitor():
                                     id[3].date(),
                                     id[3].time(),
                                     id[4],
-                                    put_html(commands)
+                                    put_html(commands),
+                                    round(points, 2)
                                     ])
             
             clear_scope('scope1')
@@ -138,7 +147,8 @@ def smart_monitor():
                         "Дата",
                         "Время",
                         "Лига",
-                        "Матч"
+                        "Матч",
+                        ""
                         ])
             else:
                 with use_scope('scope1'):
