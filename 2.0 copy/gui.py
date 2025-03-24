@@ -49,7 +49,7 @@ css = '''
     }
 '''
 
-config(title="FlashScore 2.0 (5 игр)", css_style=css)
+config(title="FlashScore 2.0 (10 игр)", css_style=css)
 
 def check_date(date):
     if date == "":
@@ -162,8 +162,8 @@ def smart_monitor():
                     k2_lost_home_sum = 0
                     k2_goal_away_sum = 0
                     k2_lost_away_sum = 0
-                    for j in range (1, 6):
-                        if 7 < len(detail[0]) and 7 < len(detail[1]):
+                    for j in range (1, 11):
+                        if 12 < len(detail[0]) and 12 < len(detail[1]):
                             try:
                                 if detail[0][j][4] == 'home':
                                     k1_goal_home_sum += detail[0][j][2]
@@ -205,7 +205,7 @@ def smart_monitor():
                         k1_gained_points = (goal_k1_home + goal_k1_away) / 5
                         lost_k1_home = k1_lost_home_sum * 1.5
                         lost_k1_away = k1_lost_away_sum * 1
-                        k1_lost_points = (lost_k1_home + lost_k1_away) / 5
+                        k1_lost_points = (lost_k1_home + lost_k1_away) / 10
                         k1_points = (k1_gained_points + k1_lost_points) / 2
 
                         goal_k2_home = k2_goal_home_sum * 1.5
@@ -213,7 +213,7 @@ def smart_monitor():
                         k2_gained_points = (goal_k2_home + goal_k2_away) / 5
                         lost_k2_home = k2_lost_home_sum * 1.5
                         lost_k2_away = k2_lost_away_sum * 1
-                        k2_lost_points = (lost_k2_home + lost_k2_away) / 5
+                        k2_lost_points = (lost_k2_home + lost_k2_away) / 10
                         k2_points = (k2_gained_points + k2_lost_points) / 2
                         
 
