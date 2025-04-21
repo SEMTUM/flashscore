@@ -248,11 +248,11 @@ def smart_monitor():
 
                                 if datetime.now() <= id[3] and tb2_5 != None:
                                     table_data_list.append([
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap;">{date_str}</div>'),
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap;">{time_str}</div>'),
+                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{date_str}</div>'),
+                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
                                         put_html(f'<div style="color: #6c757d; font-style: italic;">{id[4]}</div>'),
                                         put_html(match_link),
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap;">{tb2_5}</div>'),
+                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{tb2_5}</div>'),
                                         put_html(rating_badge)
                                     ])
 
