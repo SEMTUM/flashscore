@@ -7,8 +7,8 @@ headers = {"x-fsign": "SW9D1eZo"} # Ключ авторизации на сер�
 
 class flashscore:
 
-    def get_matchs(day):
-        feed = f'f_1_{day}_3_ru_5' # Переменная "day" отвечает за какой день мы хотим получить результат (0 - сегодня, -1 - вчера, 1 - завтра и т.п.) (f_1 - футбол)
+    def get_matchs(view, day):
+        feed = f'f_{view}_{day}_3_ru_5' # Переменная "day" отвечает за какой день мы хотим получить результат (0 - сегодня, -1 - вчера, 1 - завтра и т.п.) (f_1 - футбол, f_3 - баскетбоол)
         url = f'https://d.flashscorekz.com/x/feed/{feed}'
         response = requests.get(url=url, headers=headers)
         data = response.text.split('¬')
@@ -38,7 +38,7 @@ class flashscore:
         
         return list_match
 
-    def get_details(match):
+    def get_details_f_1(match):
         url = f'https://46.ds.lsapp.eu/pq_graphql?_hash=dsof&eventId={match}&projectId=46' #(В переменную "match" подставляем ID матча по которому хотим получить сведения)
         response = requests.get(url=url, headers=headers)
         data = json.loads(response.text)
@@ -62,7 +62,7 @@ class flashscore:
         
         return result_1, result_2, score_1, score_2 # Выдает резельтат предыдущих игр каждой из команд и счёт
     
-    def get_total_goals(match):
+    def get_total_goals_f_1(match):
         url = f'https://46.flashscore.ninja/46/x/feed/df_hh_1_{match}'
         response = requests.get(url=url, headers=headers)
         data = response.text.split('¬')
@@ -97,7 +97,7 @@ class flashscore:
         
         return list_match
     
-    def get_odds(match_id):
+    def get_odds_f_1(match_id):
         url = f'https://global.ds.lsapp.eu/odds/pq_graphql?_hash=oce&eventId={match_id}&projectId=46&geoIpCode=RU&geoIpSubdivisionCode=RU'
         response = requests.get(url=url, headers=headers)
         data = json.loads(response.text)['data']['findOddsByEventId']['odds']
@@ -110,8 +110,33 @@ class flashscore:
                     return elem['value']
         except:
             return None
-
+        
+    def get_info_f_3(day, index):
+        output_data = []
+        while True:
+            try:
+                match_list = flashscore.get_matchs(3, day)
+                break
+            except:
+                print('Ошибка получения данных матчей')
+        print(f'Найдено {len(match_list)} матча')
+        for match in match_list:
+            tuple_data = {}
+            tuple_data['match_id'] = match[0]
+            tuple_data['comand_1'] = match[1]
+            tuple_data['comand_2'] = match[2]
+            tuple_data['datetime'] = match[3]
+            tuple_data['liga'] = match[4]
+            url = f'https://global.ds.lsapp.eu/odds/pq_graphql?_hash=ope&eventId={tuple_data['match_id']}&projectId=46&geoIpCode=RU&geoIpSubdivisionCode=RU'
+            response = requests.get(url=url, headers=headers)
+            data = json.loads(response.text)['data']['findPrematchOddsById']['odds'][0]['odds']
+            if data != []:
+                tuple_data['k_1'] = data[0]['value']
+                tuple_data['k_2'] = data[1]['value']
+                output_data.append(tuple_data)
+        return output_data
+            
 
 
 if __name__ == '__main__':
-    print(flashscore.get_odds("f79xolZj"))
+    print(flashscore.get_info_f_3(0, 3))
