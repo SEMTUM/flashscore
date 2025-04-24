@@ -10,7 +10,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('__main__')
 
 # Constants
 API_HEADERS = {"x-fsign": "SW9D1eZo"}

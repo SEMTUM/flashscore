@@ -5,6 +5,8 @@ from main import FlashScore as fs
 from datetime import datetime
 from pywebio.session import run_js
 from pywebio.exceptions import SessionClosedException
+import logging
+from logging import StreamHandler
 
 
 
@@ -56,6 +58,18 @@ css = '''
 '''
 
 config(title="FlashScore 3.0 (Баскетбол)", css_style=css)
+
+
+class PyWebIOLogHandler(logging.Handler):
+    def __init__(self, scope_name="log_scope"):
+        super().__init__()
+        self.scope_name = scope_name
+
+    def emit(self, record):
+        msg = self.format(record)
+        with use_scope(self.scope_name, clear=False):
+            put_text(f"[{record.levelname}] {msg}")
+
 
 def check_date(date):
     if date == "":
@@ -133,6 +147,10 @@ def smart_monitor():
                                 <div style="font-weight:500; color:#1565c0">Идет поиск совпадений... Результаты появятся здесь</div>
                             </div>
                         ''')
+
+                        put_html('<div style="margin-top:20px; font-weight:500; color:#444">Логи выполнения:</div>')
+                        with use_scope('log_scope'):
+                            put_text("Здесь будут отображаться логи...")
 
                         search_list = fs.get_basketball_matches_info(num)
                         for match in search_list:
@@ -237,5 +255,15 @@ def smart_monitor():
                         clear_scope('scope1')
             except SessionClosedException:
                 break
+
+
+
 if __name__ == '__main__':
+    # Настройка обработчика логов
+    logger = logging.getLogger('__main__')  # Получаем корневой логгер
+    handler = PyWebIOLogHandler()
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    
     smart_monitor()
