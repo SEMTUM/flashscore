@@ -1,10 +1,11 @@
 from pywebio.platform import config
-from pywebio.input import input, DATE, FLOAT, actions, input_group
-from pywebio.output import put_table, put_progressbar, set_progressbar, use_scope, clear_scope, put_html, put_error, put_warning, put_success
-from main import flashscore
+from pywebio.input import input, DATE, actions, input_group
+from pywebio.output import put_text, put_table, put_scrollable, use_scope, clear_scope, put_html, put_error
+from main import FlashScore as fs
 from datetime import datetime
 from pywebio.session import run_js
 from pywebio.exceptions import SessionClosedException
+
 
 
 css = '''
@@ -48,9 +49,13 @@ css = '''
     #input-cards{
         max-width: 1200px;
     }
+    .markdown-body table td, .markdown-body table th {
+        padding: 4px 0;
+        border: 1px solid #dfe2e5;
+    }
 '''
 
-config(title="FlashScore 2.1 (5 игр)", css_style=css)
+config(title="FlashScore 3.0 (Баскетбол)", css_style=css)
 
 def check_date(date):
     if date == "":
@@ -85,221 +90,151 @@ def smart_monitor():
                                 placeholder="ДД.ММ.ГГГГ",
                                 help_text="Выберите дату для анализа матчей",
                                 required=True
-                            ),
-                            
-                            # Поле коэффициента
-                            input(label="Индекс Тотал Больше", 
-                                type=FLOAT, 
-                                name="coefficient",
-                                validate=check_field,
-                                placeholder="Например - 2.5",
-                                help_text="Индекс количества голов",
-                                datalist=['3'],
-                                required=True
                             )
                         ]
                     )
-                search_date = datetime.strptime(data["date"], '%Y-%m-%d')
-                coefficient = float(data["coefficient"])
-                table_data_list = []
-                now = str(datetime.now())[:10]
-                today = datetime.strptime(now, '%Y-%m-%d')
-                num_days = (today - search_date).days
-                if int(num_days) < 0:
-                    num = abs(int(num_days))
-                else:
-                    num = int("-" + str(num_days))
-                with use_scope('scope1', clear=True):
-                    # Стилизованное сообщение о загрузке
-                    put_html('''
-                        <div style="
-                            background: #e3f2fd;
-                            border-left: 4px solid #2196f3;
-                            padding: 15px;
-                            margin: 10px 0;
-                            border-radius: 4px;
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                        ">
-                            <style>
-                                @keyframes spin {
-                                    0% { transform: rotate(0deg); }
-                                    100% { transform: rotate(360deg); }
-                                }
-                                .loading-icon {
-                                    animation: spin 1.2s linear infinite;
-                                    transform-origin: center;
-                                }
-                            </style>
-                            <div class="loading-icon">
-                                <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                                    <path fill="#2196f3" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
-                                </svg>
-                            </div>
-                            <div style="font-weight:500; color:#1565c0">Идет поиск совпадений... Результаты появятся здесь</div>
-                        </div>
-                    ''')
-                    put_progressbar('bar')
-                    search_list = flashscore.get_matchs(num)
-                    i = 0
-                    n = len(search_list)
-                    for id in search_list:
-                        i = i + 1
-                        set_progressbar('bar', i / n)
-                        while True:
-                            try:
-                                detail = flashscore.get_total_goals(str(id[0]))
-                                if detail:
-                                    break
-                            except Exception as e:
-                                with use_scope('scope1'):
-                                    put_warning(e)
-
-                        k1_goal_home_sum = 0
-                        k1_lost_home_sum = 0
-                        k1_goal_away_sum = 0
-                        k1_lost_away_sum = 0
-                        k2_goal_home_sum = 0
-                        k2_lost_home_sum = 0
-                        k2_goal_away_sum = 0
-                        k2_lost_away_sum = 0
-                        for j in range (1, 6):
-                            if 7 < len(detail[0]) and 7 < len(detail[1]):
-                                try:
-                                    if detail[0][j][4] == 'home':
-                                        k1_goal_home_sum += detail[0][j][2]
-                                        k1_lost_home_sum += detail[0][j][3]
-                                    if detail[0][j][4] == 'away':
-                                        k1_goal_away_sum += detail[0][j][3]
-                                        k1_lost_away_sum += detail[0][j][2]
-                                except:
-                                    k1_goal_home_sum = 0
-                                    k1_lost_home_sum = 0
-                                    k1_goal_away_sum = 0
-                                    k1_lost_away_sum = 0
-                                
-                                try:
-                                    if detail[1][j][4] == 'home':
-                                        k2_goal_home_sum += detail[1][j][2]
-                                        k2_lost_home_sum += detail[1][j][3]
-                                    if detail[1][j][4] == 'away':
-                                        k2_goal_away_sum += detail[1][j][3]
-                                        k2_lost_away_sum += detail[1][j][2]
-                                except:
-                                    k2_goal_home_sum = 0
-                                    k2_lost_home_sum = 0
-                                    k2_goal_away_sum = 0
-                                    k2_lost_away_sum = 0
-
-                        if (k1_goal_home_sum != 0
-                            and k1_lost_home_sum != 0
-                            and k1_goal_away_sum != 0
-                            and k1_lost_away_sum != 0
-                            and k2_goal_home_sum != 0
-                            and k2_lost_home_sum != 0
-                            and k2_goal_away_sum != 0
-                            and k2_lost_away_sum != 0
-                            ):
-
-                            goal_k1_home = k1_goal_home_sum * 1.5
-                            goal_k1_away = k1_goal_away_sum * 2
-                            k1_gained_points = (goal_k1_home + goal_k1_away) / 5
-                            lost_k1_home = k1_lost_home_sum * 1.5
-                            lost_k1_away = k1_lost_away_sum * 1
-                            k1_lost_points = (lost_k1_home + lost_k1_away) / 5
-                            k1_points = (k1_gained_points + k1_lost_points) / 2
-
-                            goal_k2_home = k2_goal_home_sum * 1.5
-                            goal_k2_away = k2_goal_away_sum * 2
-                            k2_gained_points = (goal_k2_home + goal_k2_away) / 5
-                            lost_k2_home = k2_lost_home_sum * 1.5
-                            lost_k2_away = k2_lost_away_sum * 1
-                            k2_lost_points = (lost_k2_home + lost_k2_away) / 5
-                            k2_points = (k2_gained_points + k2_lost_points) / 2
-                            
-
-                            points = (k1_points + k2_points) / 2
-                            
-                            # print(id[0], points)
-                            # print(k1_goal_home_sum, k1_goal_away_sum, k1_lost_home_sum, k1_lost_away_sum, goal_k1_home, goal_k1_away, lost_k1_home, lost_k1_away)
-                            # print(k2_goal_home_sum, k2_goal_away_sum, k2_lost_home_sum, k2_lost_away_sum, goal_k2_home, goal_k2_away, lost_k2_home, lost_k2_away)
-                            # print(k1_gained_points, k1_lost_points)
-                            # print(k2_gained_points, k2_lost_points)
-                            # print(k1_points, k2_points)
-                            # print(points)
-
-
-                            if float(points) > coefficient:
-                                link = f"https://www.flashscorekz.com/match/{id[0]}/#/match-summary"
-                                name = id[1] + " - " + id[2]
-                                
-                                date_str = id[3].strftime('%d.%m.%Y')
-                                time_str = id[3].strftime('%H:%M')
-                                
-                                # Стилизация ссылки
-                                match_link = f'<a href="{link}" target="_blank" style="color: #007bff; text-decoration: none; transition: all 0.3s; font-weight: 500;">{name}</a>'
-                                
-                                # Стилизация рейтинга
-                                rating_color = "#28a745" if float(points) > 1.5 else "#dc3545"
-                                rating_badge = f'<span style="background-color: {rating_color}; color: white; padding: 3px 8px; border-radius: 4px;">{round(points, 1)}</span>'
-
-                                tb2_5 = flashscore.get_odds(id[0])
-
-                                if datetime.now() <= id[3] and tb2_5 != None:
-                                    table_data_list.append([
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{date_str}</div>'),
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
-                                        put_html(f'<div style="color: #6c757d; font-style: italic;">{id[4]}</div>'),
-                                        put_html(match_link),
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{tb2_5}</div>'),
-                                        put_html(rating_badge)
-                                    ])
-
-                    if table_data_list:
-                        with use_scope('scope1', clear=True):
-                            # Создаем таблицу с inline-стилями
-                            put_table(
-                                table_data_list,
-                                header=[
-                                    put_html('<div style="background-color: #009879; color: white; padding: 12px 15px; text-align: left; position: sticky; top: 0;">Дата</div>'),
-                                    put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Время</div>'),
-                                    put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Лига</div>'),
-                                    put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Матч</div>'),
-                                    put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">ТБ 2.5</div>'),
-                                    put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Индекс</div>')
-                                ]
-                                ).style(
-                                    'width: 100%; '
-                                    'border-collapse: collapse; '
-                                    'margin: 1rem 0; '
-                                    'box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); '
-                                    'font-family: Arial, sans-serif;'
-                                )
-                            
-                            # Добавляем скрипт для hover-эффектов
-                            run_js('''
-                                Array.from(document.querySelectorAll("tr")).forEach(row => {
-                                    row.style.borderBottom = "1px solid #dddddd";
-                                    row.style.background = (row.rowIndex % 2 === 0) ? "#f8f9fa" : "white";
-                                    row.onmouseover = () => row.style.background = "#f1f1f1";
-                                    row.onmouseout = () => row.style.background = (row.rowIndex % 2 === 0) ? "#f8f9fa" : "white";
-                                });
-                            ''')
+                    search_date = datetime.strptime(data["date"], '%Y-%m-%d')
+                    table_data_list = []
+                    now = str(datetime.now())[:10]
+                    today = datetime.strptime(now, '%Y-%m-%d')
+                    num_days = (today - search_date).days
+                    if int(num_days) < 0:
+                        num = abs(int(num_days))
                     else:
-                        with use_scope('scope1', clear=True):
-                            put_error("🚨 Нет данных по указанным параметрам!").style(
-                                'padding: 15px; '
-                                'background-color: #ffeef0; '
-                                'color: #dc3545; '
-                                'border: 1px solid #dc3545; '
-                                'border-radius: 6px; '
-                                'margin: 20px 0; '
-                                'font-weight: bold;'
-                            )
+                        num = int("-" + str(num_days))
+                    with use_scope('scope1', clear=True):
+                        # Стилизованное сообщение о загрузке
+                        put_html('''
+                            <div style="
+                                background: #e3f2fd;
+                                border-left: 4px solid #2196f3;
+                                padding: 15px;
+                                margin: 10px 0;
+                                border-radius: 4px;
+                                display: flex;
+                                align-items: center;
+                                gap: 12px;
+                            ">
+                                <style>
+                                    @keyframes spin {
+                                        0% { transform: rotate(0deg); }
+                                        100% { transform: rotate(360deg); }
+                                    }
+                                    .loading-icon {
+                                        animation: spin 1.2s linear infinite;
+                                        transform-origin: center;
+                                    }
+                                </style>
+                                <div class="loading-icon">
+                                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                                        <path fill="#2196f3" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+                                    </svg>
+                                </div>
+                                <div style="font-weight:500; color:#1565c0">Идет поиск совпадений... Результаты появятся здесь</div>
+                            </div>
+                        ''')
 
-                    actions(buttons=[{"label": "Новый запрос", "value": "new", "color": "success"}])
-                    clear_scope('scope1')
+                        search_list = fs.get_basketball_matches_info(num)
+                        for match in search_list:
+                            link = f"https://www.flashscorekz.com/match/basketball/{match['match_id']}/#/match-summary"
+                            name = match['team_1'] + " - " + match['team_2']
+                            date_str = match['datetime'].strftime('%d.%m.%Y')
+                            time_str = match['datetime'].strftime('%H:%M')
+
+                            com_1_goal = int(match['k1_score'][1].split(':')[0]) / int(match['k1_score'][0])
+                            com_1_lost = int(match['k1_score'][1].split(':')[1]) / int(match['k1_score'][0])
+                            com_2_goal = int(match['k2_score'][1].split(':')[0]) / int(match['k2_score'][0])
+                            com_2_lost = int(match['k2_score'][1].split(':')[1]) / int(match['k2_score'][0])
+
+                            index_1 = int(com_1_goal + com_2_lost)
+                            index_2 = int(com_2_goal + com_1_lost)
+
+                            index_itogo = index_1 - index_2
+
+                            com_1_goal_home = int(match['k1_score_home'][1].split(':')[0]) / int(match['k1_score_home'][0])
+                            com_1_lost_home = int(match['k1_score_home'][1].split(':')[1]) / int(match['k1_score_home'][0])
+                            com_2_goal_away = int(match['k2_score_away'][1].split(':')[0]) / int(match['k2_score_away'][0])
+                            com_2_lost_away = int(match['k2_score_away'][1].split(':')[1]) / int(match['k2_score_away'][0])
+                            
+                            index_3 = int(com_1_goal_home + com_2_lost_away)
+                            index_4 = int(com_2_goal_away + com_1_lost_home)
+
+                            index_d_g = index_3 - index_4
+                            
+                            index = (index_itogo + index_d_g) / 2
+
+                            if index < 0:
+                                prognoz = 'K2'
+                            elif index > 0:
+                                prognoz = 'K1'
+                            else:
+                                prognoz = None
+                                    
+                            # Стилизация ссылки
+                            match_link = f'<a href="{link}" target="_blank" style="color: #007bff; text-decoration: none; transition: all 0.3s; font-weight: 500;">{name}</a>'
+
+                            if datetime.now() <= match['datetime'] and prognoz != None:
+                                table_data_list.append([
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{date_str}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
+                                    put_html(f'<div style="color: #6c757d; font-style: italic;">{match['league']}</div>'),
+                                    put_html(match_link),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{match['k_1']}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{match['k_2']}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index_itogo}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index_d_g}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{prognoz}</div>')
+                                ])
+
+                            if table_data_list:
+                                with use_scope('scope1', clear=True):
+                                    # Создаем таблицу с inline-стилями
+                                    put_table(
+                                        table_data_list,
+                                        header=[
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px; text-align: left; position: sticky; top: 0;">Дата</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Время</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Лига</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Матч</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">К1</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">К2</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Все</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Д Г</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Общий</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Прогноз</div>')
+                                        ]
+                                        ).style(
+                                            'width: 100%; '
+                                            'border-collapse: collapse; '
+                                            'margin: 1rem 0; '
+                                            'box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); '
+                                            'font-family: Arial, sans-serif;'
+                                        )
+                                    
+                                    # Добавляем скрипт для hover-эффектов
+                                    run_js('''
+                                        Array.from(document.querySelectorAll("tr")).forEach(row => {
+                                            row.style.borderBottom = "1px solid #dddddd";
+                                            row.style.background = (row.rowIndex % 2 === 0) ? "#f8f9fa" : "white";
+                                            row.onmouseover = () => row.style.background = "#f1f1f1";
+                                            row.onmouseout = () => row.style.background = (row.rowIndex % 2 === 0) ? "#f8f9fa" : "white";
+                                        });
+                                    ''')
+                            else:
+                                with use_scope('scope1', clear=True):
+                                    put_error("🚨 Нет данных по указанным параметрам!").style(
+                                        'padding: 15px; '
+                                        'background-color: #ffeef0; '
+                                        'color: #dc3545; '
+                                        'border: 1px solid #dc3545; '
+                                        'border-radius: 6px; '
+                                        'margin: 20px 0; '
+                                        'font-weight: bold;'
+                                    )
+
+                        actions(buttons=[{"label": "Новый запрос", "value": "new", "color": "success"}])
+                        clear_scope('scope1')
             except SessionClosedException:
                 break
 if __name__ == '__main__':
