@@ -148,9 +148,9 @@ def smart_monitor():
                             </div>
                         ''')
 
-                        put_html('<div style="margin-top:20px; font-weight:500; color:#444">Логи выполнения:</div>')
+                        put_html('<div style="margin-top:20px; font-weight:500; color:#444">Журнал выполнения:</div>')
                         with use_scope('log_scope'):
-                            put_text("Здесь будут отображаться логи...")
+                            pass
 
                         search_list = fs.get_basketball_matches_info(num)
                         for match in search_list:
