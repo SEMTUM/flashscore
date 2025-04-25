@@ -58,6 +58,30 @@ css = '''
     #pywebio-scope-log_scope {
         height: 400px;
         overflow: auto;
+        padding: 10px;
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin-top: 15px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    #pywebio-scope-log_scope::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #pywebio-scope-log_scope::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    #pywebio-scope-log_scope::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    
+    #pywebio-scope-log_scope::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
     }
 '''
 
@@ -68,12 +92,48 @@ class PyWebIOLogHandler(logging.Handler):
     def __init__(self, scope_name="log_scope"):
         super().__init__()
         self.scope_name = scope_name
+        self.level_colors = {
+            'INFO': '#3498db',
+            'WARNING': '#f39c12',
+            'ERROR': '#e74c3c',
+            'CRITICAL': '#c0392b',
+            'DEBUG': '#2ecc71'
+        }
 
     def emit(self, record):
         msg = self.format(record)
+        level = record.levelname
+        color = self.level_colors.get(level, '#95a5a6')
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        
         with use_scope(self.scope_name, clear=False):
-            put_html(f"[{record.levelname}] {msg} <br>")
-            # Прокручиваем вниз после добавления сообщения
+            put_html(f'''
+                <div style="
+                    margin: 5px 0;
+                    padding: 8px 12px;
+                    border-left: 4px solid {color};
+                    background-color: #f8f9fa;
+                    border-radius: 0 4px 4px 0;
+                    font-family: monospace;
+                    display: flex;
+                    align-items: center;
+                ">
+                    <span style="
+                        color: #7f8c8d;
+                        margin-right: 10px;
+                        font-size: 0.85em;
+                        min-width: 70px;
+                    ">{timestamp}</span>
+                    <span style="
+                        font-weight: bold;
+                        color: {color};
+                        margin-right: 8px;
+                        min-width: 70px;
+                    ">{level}</span>
+                    <span style="color: #2c3e50;">{msg}</span>
+                </div>
+            ''')
+            # Автопрокрутка вниз
             run_js(f'''
                 var logScope = document.getElementById('pywebio-scope-{self.scope_name}');
                 if (logScope) {{
