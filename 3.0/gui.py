@@ -55,6 +55,10 @@ css = '''
         padding: 4px 0;
         border: 1px solid #dfe2e5;
     }
+    #pywebio-scope-log_scope {
+        height: 400px;
+        overflow: auto;
+    }
 '''
 
 config(title="FlashScore 3.0 (Баскетбол)", css_style=css)
@@ -68,7 +72,14 @@ class PyWebIOLogHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         with use_scope(self.scope_name, clear=False):
-            put_text(f"[{record.levelname}] {msg}")
+            put_html(f"[{record.levelname}] {msg} <br>")
+            # Прокручиваем вниз после добавления сообщения
+            run_js(f'''
+                var logScope = document.getElementById('pywebio-scope-{self.scope_name}');
+                if (logScope) {{
+                    logScope.scrollTop = logScope.scrollHeight;
+                }}
+            ''')
 
 
 def check_date(date):
@@ -148,12 +159,13 @@ def smart_monitor():
                             </div>
                         ''')
 
-                        put_html('<div style="margin-top:20px; font-weight:500; color:#444">Журнал выполнения:</div>')
-                        with use_scope('log_scope'):
-                            pass
+                        put_html('<div style="margin-top:20px; margin-bottom:20px; font-weight:500; color:#444">Журнал выполнения:</div>')
+                        use_scope('log_scope')
+                        
 
                         search_list = fs.get_basketball_matches_info(num)
                         for match in search_list:
+                            status = True
                             link = f"https://www.flashscorekz.com/match/basketball/{match['match_id']}/#/match-summary"
                             name = match['team_1'] + " - " + match['team_2']
                             date_str = match['datetime'].strftime('%d.%m.%Y')
@@ -187,20 +199,22 @@ def smart_monitor():
                                 prognoz = 'K1'
                             else:
                                 prognoz = None
+
+                            if (index_itogo <=0 and index_d_g > 0) or (index_d_g <=0 and index_itogo > 0):
+                                status = False
+
                                     
                             # Стилизация ссылки
-                            match_link = f'<a href="{link}" target="_blank" style="color: #007bff; text-decoration: none; transition: all 0.3s; font-weight: 500;">{name}</a>'
+                            match_link = f'<a href="{link}" target="_blank" style="color: #007bff; text-decoration: none; transition: all 0.3s; font-weight: 500; margin: 0 8px;">{name}</a>'
 
-                            if datetime.now() <= match['datetime'] and prognoz != None:
+                            if datetime.now() <= match['datetime'] and prognoz != None and status == True:
                                 table_data_list.append([
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{date_str}</div>'),
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
-                                    put_html(f'<div style="color: #6c757d; font-style: italic;">{match['league']}</div>'),
+                                    put_html(f'<div style="color: #6c757d; font-style: italic;  margin: 0 8px;">{match['league']}</div>'),
                                     put_html(match_link),
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{match['k_1']}</div>'),
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{match['k_2']}</div>'),
-                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index_itogo}</div>'),
-                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index_d_g}</div>'),
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index}</div>'),
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{prognoz}</div>')
                                 ])
@@ -217,9 +231,7 @@ def smart_monitor():
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Матч</div>'),
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">К1</div>'),
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">К2</div>'),
-                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Все</div>'),
-                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Д Г</div>'),
-                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Общий</div>'),
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Индекс</div>'),
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Прогноз</div>')
                                         ]
                                         ).style(
