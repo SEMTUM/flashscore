@@ -5,14 +5,14 @@ from time import sleep
 from typing import List, Dict, Optional, Tuple
 import requests
 
-# Configure logging
+# Настройка логгирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger('__main__')
 
-# Constants
+# Константы
 API_HEADERS = {"x-fsign": "SW9D1eZo"}
 MAX_RETRIES = 3
 RETRY_DELAY = 10
@@ -25,21 +25,21 @@ BASE_STATS_URL = "https://46.flashscore.ninja/46/x/feed"
 
 
 class FlashScore:
-    """Class for interacting with FlashScore API to get sports data."""
+    """Класс для взаимодействия с API FlashScore для получения спортивных данных."""
 
     @staticmethod
     def make_request(url: str) -> requests.Response:
         """
-        Make HTTP request with retry logic.
+        Выполняет HTTP-запрос с логикой повторных попыток.
         
         Args:
-            url: URL to make request to
+            url: URL для запроса
             
         Returns:
-            Response object
+            Объект Response
             
         Raises:
-            Exception: After maximum retries exceeded
+            Exception: После превышения максимального числа попыток
         """
         for attempt in range(MAX_RETRIES):
             try:
@@ -49,20 +49,20 @@ class FlashScore:
             except Exception as e:
                 if attempt == MAX_RETRIES - 1:
                     raise
-                logger.warning(f"Attempt {attempt + 1} failed for URL {url}: {str(e)}")
-                logger.info(f"Waiting {RETRY_DELAY} seconds before retry...")
+                logger.warning(f"Попытка {attempt + 1} не удалась для URL {url}: {str(e)}")
+                logger.info(f"Ожидание {RETRY_DELAY} секунд перед повторной попыткой...")
                 sleep(RETRY_DELAY)
 
     @staticmethod
     def parse_match_data(raw_data: str) -> List[Dict]:
         """
-        Parse raw match data from FlashScore API.
+        Парсит сырые данные о матчах из API FlashScore.
         
         Args:
-            raw_data: Raw response text from API
+            raw_data: Сырой текст ответа от API
             
         Returns:
-            List of parsed match dictionaries
+            Список распарсенных словарей с данными о матчах
         """
         data = raw_data.split('¬')
         data_list = [{}]
@@ -81,14 +81,14 @@ class FlashScore:
     @staticmethod
     def get_matches(sport_id: int, day_offset: int) -> List[Tuple[str, str, str, datetime, str]]:
         """
-        Get matches for specified sport and day.
+        Получает матчи для указанного вида спорта и дня.
         
         Args:
-            sport_id: Sport identifier (3 for basketball)
-            day_offset: Day offset (0 - today, -1 - yesterday, 1 - tomorrow)
+            sport_id: Идентификатор вида спорта (3 - баскетбол)
+            day_offset: Смещение дня (0 - сегодня, -1 - вчера, 1 - завтра)
             
         Returns:
-            List of match tuples (id, team1, team2, date, league)
+            Список кортежей с данными о матчах (id, команда1, команда2, дата, лига)
         """
         feed = f'f_{sport_id}_{day_offset}_3_ru_5'
         url = f'{BASE_FLASHSCORE_URL}/{feed}'
@@ -97,11 +97,11 @@ class FlashScore:
             response = FlashScore.make_request(url)
             data_list = FlashScore.parse_match_data(response.text)
         except Exception as e:
-            logger.error(f"Failed to get matches: {str(e)}")
+            logger.error(f"Ошибка при получении матчей: {str(e)}")
             return []
 
         matches = []
-        current_league = "Unknown"
+        current_league = "Неизвестно"
         
         for game in data_list:
             if not game:
@@ -123,21 +123,21 @@ class FlashScore:
                         current_league
                     ))
                 except (ValueError, TypeError) as e:
-                    logger.warning(f"Failed to parse match data: {str(e)}")
+                    logger.warning(f"Ошибка при разборе данных матча: {str(e)}")
 
-        logger.info(f"Successfully retrieved {len(matches)} matches")
+        logger.info(f"Успешно получено {len(matches)} матчей")
         return matches
 
     @staticmethod
     def get_odds(match_id: str) -> Optional[Tuple[float, float]]:
         """
-        Get odds for a specific match.
+        Получает коэффициенты для конкретного матча.
         
         Args:
-            match_id: Match identifier
+            match_id: Идентификатор матча
             
         Returns:
-            Tuple of (odds1, odds2) or None if not available
+            Кортеж (коэффициент1, коэффициент2) или None, если недоступно
         """
         url = f'{BASE_ODDS_URL}?_hash=ope&eventId={match_id}&projectId=46&geoIpCode=RU&geoIpSubdivisionCode=RU'
         
@@ -149,7 +149,7 @@ class FlashScore:
             if odds:
                 return float(odds[0]['value']), float(odds[1]['value'])
         except Exception as e:
-            logger.warning(f"Failed to get odds for match {match_id}: {str(e)}")
+            logger.warning(f"Не удалось получить коэффициенты для матча {match_id}: {str(e)}")
             
         return None
 
@@ -160,15 +160,15 @@ class FlashScore:
         stat_type: str
     ) -> Optional[Tuple[str, str]]:
         """
-        Process team statistics from raw data.
+        Обрабатывает статистику команды из сырых данных.
         
         Args:
-            raw_data: Raw statistics data
-            team_name: Team name to search for
-            stat_type: Type of statistics (for logging)
+            raw_data: Сырые данные статистики
+            team_name: Название команды для поиска
+            stat_type: Тип статистики (для логгирования)
             
         Returns:
-            Tuple of (games, score) or None if not found
+            Кортеж (игры, счет) или None, если не найдено
         """
         if not raw_data:
             return None
@@ -188,22 +188,22 @@ class FlashScore:
                     if games and int(games) >= MIN_GAMES_THRESHOLD:
                         return (games, score)
                 except (IndexError, ValueError) as e:
-                    logger.warning(f"Error processing {stat_type} stats: {str(e)}")
+                    logger.warning(f"Ошибка при обработке статистики {stat_type}: {str(e)}")
                     
         return None
 
     @staticmethod
     def get_match_stats(match_id: str, team1: str, team2: str) -> Dict:
         """
-        Get statistics for a match.
+        Получает статистику для матча.
         
         Args:
-            match_id: Match identifier
-            team1: First team name
-            team2: Second team name
+            match_id: Идентификатор матча
+            team1: Название первой команды
+            team2: Название второй команды
             
         Returns:
-            Dictionary with all collected statistics
+            Словарь со всей собранной статистикой
         """
         stats = {
             'k1_score': None,
@@ -214,56 +214,56 @@ class FlashScore:
             'k2_score_away': None
         }
         
-        # Get general stats
+        # Получение общей статистики
         try:
             url = f'{BASE_STATS_URL}/df_to_1_{match_id}_1'
             response = FlashScore.make_request(url)
-            stats['k1_score'] = FlashScore.process_team_stats(response.text, team1, "general")
-            stats['k2_score'] = FlashScore.process_team_stats(response.text, team2, "general")
+            stats['k1_score'] = FlashScore.process_team_stats(response.text, team1, "общая")
+            stats['k2_score'] = FlashScore.process_team_stats(response.text, team2, "общая")
         except Exception as e:
-            logger.warning(f"Failed to get general stats for match {match_id}: {str(e)}")
+            logger.warning(f"Не удалось получить общую статистику для матча {match_id}: {str(e)}")
 
-        # Get home stats
+        # Получение домашней статистики
         try:
             url = f'{BASE_STATS_URL}/df_to_1_{match_id}_2'
             response = FlashScore.make_request(url)
-            stats['k1_score_home'] = FlashScore.process_team_stats(response.text, team1, "home")
-            stats['k2_score_home'] = FlashScore.process_team_stats(response.text, team2, "home")
+            stats['k1_score_home'] = FlashScore.process_team_stats(response.text, team1, "домашняя")
+            stats['k2_score_home'] = FlashScore.process_team_stats(response.text, team2, "домашняя")
         except Exception as e:
-            logger.warning(f"Failed to get home stats for match {match_id}: {str(e)}")
+            logger.warning(f"Не удалось получить домашнюю статистику для матча {match_id}: {str(e)}")
 
-        # Get away stats
+        # Получение гостевой статистики
         try:
             url = f'{BASE_STATS_URL}/df_to_1_{match_id}_3'
             response = FlashScore.make_request(url)
-            stats['k1_score_away'] = FlashScore.process_team_stats(response.text, team1, "away")
-            stats['k2_score_away'] = FlashScore.process_team_stats(response.text, team2, "away")
+            stats['k1_score_away'] = FlashScore.process_team_stats(response.text, team1, "гостевая")
+            stats['k2_score_away'] = FlashScore.process_team_stats(response.text, team2, "гостевая")
         except Exception as e:
-            logger.warning(f"Failed to get away stats for match {match_id}: {str(e)}")
+            logger.warning(f"Не удалось получить гостевую статистику для матча {match_id}: {str(e)}")
 
         return stats
 
     @staticmethod
     def get_basketball_matches_info(day_offset: int) -> List[Dict]:
         """
-        Get detailed information about basketball matches for specified day.
+        Получает подробную информацию о баскетбольных матчах для указанного дня.
         
         Args:
-            day_offset: Day offset (0 - today, -1 - yesterday, 1 - tomorrow)
+            day_offset: Смещение дня (0 - сегодня, -1 - вчера, 1 - завтра)
             
         Returns:
-            List of dictionaries with complete match information
+            Список словарей с полной информацией о матчах
         """
         matches = FlashScore.get_matches(3, day_offset)
         if not matches:
             return []
 
         results = []
-        logger.info(f"Processing {len(matches)} matches...")
+        logger.info(f"Обработка {len(matches)} матчей...")
 
         for i, match in enumerate(matches, 1):
             match_id, team1, team2, date, league = match
-            logger.info(f"Processing match {i}/{len(matches)}: {team1} vs {team2} (ID: {match_id})")
+            logger.info(f"Обработка матча {i}/{len(matches)}: {team1} против {team2} (ID: {match_id})")
 
             match_data = {
                 'match_id': match_id,
@@ -275,19 +275,19 @@ class FlashScore:
                 'k_2': None
             }
 
-            # Get odds
+            # Получение коэффициентов
             odds = FlashScore.get_odds(match_id)
             if not odds:
-                logger.info(f"Skipping match {match_id} - no odds available")
+                logger.info(f"Пропуск матча {match_id} - коэффициенты недоступны")
                 continue
                 
             match_data['k_1'], match_data['k_2'] = odds
 
-            # Get statistics
+            # Получение статистики
             stats = FlashScore.get_match_stats(match_id, team1, team2)
             match_data.update(stats)
 
-            # Check if all required stats are available
+            # Проверка наличия всей необходимой статистики
             if all(match_data.get(key) for key in [
                 'k1_score', 'k2_score',
                 'k1_score_home', 'k2_score_home',
@@ -295,14 +295,14 @@ class FlashScore:
             ]):
                 results.append(match_data)
             else:
-                logger.info(f"Skipping match {match_id} - incomplete statistics")
+                logger.info(f"Пропуск матча {match_id} - неполная статистика")
 
-        logger.info(f"Successfully processed {len(results)} matches with complete data")
+        logger.info(f"Успешно обработано {len(results)} матчей с полными данными")
         return results
 
 
 if __name__ == '__main__':
-    logger.info("Starting FlashScore data collection")
+    logger.info("Начало сбора данных FlashScore")
     matches_info = FlashScore.get_basketball_matches_info(0)
-    logger.info(f"Collected data for {len(matches_info)} matches")
+    logger.info(f"Собраны данные для {len(matches_info)} матчей")
     print(matches_info)

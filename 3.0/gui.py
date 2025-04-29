@@ -47,13 +47,20 @@ css = '''
     #output-container{
         margin: 0 auto;
         max-width: 1200px;
+        width: 100%;
     } 
     #input-cards{
         max-width: 1200px;
     }
+    .markdown-body table {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+    }
     .markdown-body table td, .markdown-body table th {
-        padding: 4px 0;
+        padding: 8px 20px !important;  /* Увеличим отступы */
         border: 1px solid #dfe2e5;
+        white-space: nowrap;
     }
     #pywebio-scope-log_scope {
         height: 400px;
@@ -254,15 +261,25 @@ def smart_monitor():
                             index = (index_itogo + index_d_g) / 2
 
                             if index < 0:
-                                prognoz = 'K2'
+                                prognoz = '2'
                             elif index > 0:
-                                prognoz = 'K1'
+                                prognoz = '1'
                             else:
                                 prognoz = None
-
+                            
                             if (index_itogo <=0 and index_d_g > 0) or (index_d_g <=0 and index_itogo > 0):
                                 status = False
+                            if -6 < index < 6:
+                                status = False
 
+                            # Стилизация коэффицента
+                            prognoz_color = "#28a745"
+                            if index > 0:
+                                k1 = f'<span style="background-color: {prognoz_color}; color: white; padding: 3px 8px; border-radius: 4px;">{match['k_1']}</span>'
+                                k2 = match['k_2']
+                            if index < 0:
+                                k1 = match['k_1']
+                                k2 = f'<span style="background-color: {prognoz_color}; color: white; padding: 3px 8px; border-radius: 4px;">{match['k_2']}</span>'
                                     
                             # Стилизация ссылки
                             match_link = f'<a href="{link}" target="_blank" style="color: #007bff; text-decoration: none; transition: all 0.3s; font-weight: 500; margin: 0 8px;">{name}</a>'
@@ -273,10 +290,9 @@ def smart_monitor():
                                     put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
                                     put_html(f'<div style="color: #6c757d; font-style: italic;  margin: 0 8px;">{match['league']}</div>'),
                                     put_html(match_link),
-                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{match['k_1']}</div>'),
-                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{match['k_2']}</div>'),
-                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index}</div>'),
-                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{prognoz}</div>')
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{k1}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{k2}</div>'),
+                                    put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{index}</div>')
                                 ])
 
                             if table_data_list:
@@ -291,16 +307,17 @@ def smart_monitor():
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Матч</div>'),
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">К1</div>'),
                                             put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">К2</div>'),
-                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Индекс</div>'),
-                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Прогноз</div>')
-                                        ]
-                                        ).style(
-                                            'width: 100%; '
-                                            'border-collapse: collapse; '
-                                            'margin: 1rem 0; '
-                                            'box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); '
-                                            'font-family: Arial, sans-serif;'
-                                        )
+                                            put_html('<div style="background-color: #009879; color: white; padding: 12px 15px;">Индекс</div>')
+                                        ],
+                                        scope='scope1'
+                                    ).style(
+                                        'width: 100% !important; '
+                                        'border-collapse: collapse; '
+                                        'margin: 1rem 0; '
+                                        'box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); '
+                                        'font-family: Arial, sans-serif;'
+                                        'table-layout: auto;'
+                                    )
                                     
                                     # Добавляем скрипт для hover-эффектов
                                     run_js('''
