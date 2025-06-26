@@ -92,7 +92,7 @@ css = '''
     }
 '''
 
-config(title="FlashScore 3.0 (Баскетбол)", css_style=css)
+config(title="FlashScore 3.0 PRO (Баскетбол)", css_style=css)
 
 
 class PyWebIOLogHandler(logging.Handler):
@@ -163,8 +163,8 @@ def smart_monitor():
         run_js('''
                     document.querySelector('footer').innerHTML = 
                         '<div style="font-size:0.9em">' +
-                        '<span style="color:#e74c3c"><a href="https://t.me/@Steven_92">@Steven_92</a></span> | ' +
-                        'Напишем любую программу для вас ' + '| Powered by <a href="https://pywebio.readthedocs.io/">PyWebIO</a>'
+                        '<span style="color:#e74c3c"><a href="https://t.me/betbotlab">@betbotlab</a></span> ' +
+                        '– Напишем любые программы и Telegram Боты по Вашим стратегиям! ' + '| Powered by PyWebIO'
                         '</div>';
                     ''')
         while True:
@@ -269,7 +269,7 @@ def smart_monitor():
                             
                             if (index_itogo <=0 and index_d_g > 0) or (index_d_g <=0 and index_itogo > 0):
                                 status = False
-                            if -6 < index < 6:
+                            if -15 < index < 15:
                                 status = False
 
                             # Стилизация коэффицента

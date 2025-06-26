@@ -50,7 +50,7 @@ css = '''
     }
 '''
 
-config(title="FlashScore 2.1 (5 игр)", css_style=css)
+config(title="Soccer TB 2.5", css_style=css)
 
 def check_date(date):
     if date == "":
@@ -66,8 +66,8 @@ def smart_monitor():
         run_js('''
                     document.querySelector('footer').innerHTML = 
                         '<div style="font-size:0.9em">' +
-                        '<span style="color:#e74c3c"><a href="https://t.me/@Steven_92">@Steven_92</a></span> | ' +
-                        'Напишем любую программу для вас ' + '| Powered by <a href="https://pywebio.readthedocs.io/">PyWebIO</a>'
+                        '<span style="color:#e74c3c"><a href="https://t.me/betbotlab">@betbotlab</a></span> ' +
+                        '– Напишем любые программы и Telegram Боты по Вашим стратегиям! ' + '| Powered by PyWebIO'
                         '</div>';
                     ''')
         while True:
@@ -85,22 +85,11 @@ def smart_monitor():
                                 placeholder="ДД.ММ.ГГГГ",
                                 help_text="Выберите дату для анализа матчей",
                                 required=True
-                            ),
-                            
-                            # Поле коэффициента
-                            input(label="Индекс Тотал Больше", 
-                                type=FLOAT, 
-                                name="coefficient",
-                                validate=check_field,
-                                placeholder="Например - 2.5",
-                                help_text="Индекс количества голов",
-                                datalist=['3'],
-                                required=True
                             )
                         ]
                     )
                 search_date = datetime.strptime(data["date"], '%Y-%m-%d')
-                coefficient = float(data["coefficient"])
+                coefficient = 3
                 table_data_list = []
                 now = str(datetime.now())[:10]
                 today = datetime.strptime(now, '%Y-%m-%d')
@@ -247,14 +236,15 @@ def smart_monitor():
                                 tb2_5 = flashscore.get_odds(id[0])
 
                                 if datetime.now() <= id[3] and tb2_5 != None:
-                                    table_data_list.append([
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{date_str}</div>'),
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
-                                        put_html(f'<div style="color: #6c757d; font-style: italic;">{id[4]}</div>'),
-                                        put_html(match_link),
-                                        put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{tb2_5}</div>'),
-                                        put_html(rating_badge)
-                                    ])
+                                    if float(tb2_5) >= 1.7:
+                                        table_data_list.append([
+                                            put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{date_str}</div>'),
+                                            put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{time_str}</div>'),
+                                            put_html(f'<div style="color: #6c757d; font-style: italic;">{id[4]}</div>'),
+                                            put_html(match_link),
+                                            put_html(f'<div style="min-width: 100px; white-space: nowrap; text-align: center;">{tb2_5}</div>'),
+                                            put_html(rating_badge)
+                                        ])
 
                     if table_data_list:
                         with use_scope('scope1', clear=True):
