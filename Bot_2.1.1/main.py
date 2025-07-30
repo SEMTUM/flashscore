@@ -2,7 +2,6 @@ import json
 import requests
 from datetime import datetime, timedelta
 import telebot
-from telebot import types
 import time
 
 headers = {"x-fsign": "SW9D1eZo"}  # Ключ авторизации на сервера
@@ -118,11 +117,15 @@ class flashscore:
 
 def analyze_matches():
     global sent_matches
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    print(current_time, 'Чистим список!')  
     
     # Удаляем матчи старше 2 дней
     current_time = datetime.now()
     sent_matches = [match for match in sent_matches 
                    if (current_time - match['match_time']) <= timedelta(days=2)]
+                                             
     
     # Инициализация переменной для хранения результатов
     list_live = []
@@ -135,9 +138,6 @@ def analyze_matches():
     # Обрабатываем каждый матч
     for match in search_list:
         match_id = match[0]
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        print( current_time)
         
         # Получаем статистику по голам для матча
         while True:
@@ -231,19 +231,13 @@ def analyze_matches():
     return list_live
 
 # Инициализация бота
-bot = telebot.TeleBot('7848995107:AAEXT_s5PPlBZP-9Kv88PA1R5qcYFp92OJk')
+bot = telebot.TeleBot('7987890606:AAHfqZ_1ymnTpxEMEPWgxlaJJas5qRCzoKg')
 
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    item = types.KeyboardButton("Анализировать матчи")
-    markup.add(item)
-    bot.send_message(message.chat.id, "Нажмите кнопку для анализа матчей", reply_markup=markup)
-
-# Обработчик нажатия кнопки
-@bot.message_handler(func=lambda message: message.text == "Анализировать матчи")
-def handle_analyze_button(message):
+    bot.send_message(message.chat.id, "Начинаю анализ матчей! 😎")
+    
     global sent_matches
     
     while True:
@@ -255,21 +249,38 @@ def handle_analyze_button(message):
                 
                 if new_matches:
                     for match in new_matches:
-                        response = (f"📅 Дата: {match['date_str']}\n"
-                                   f"⏰ Время: {match['time_str']}\n"
-                                   f"🏆 Лига: {match['league']}\n"
-                                   f"⚽ Матч: {match['teams']}\n"
-                                   f"📊 Коэффициент ТБ 2.5: {match['odds']}\n"
-                                   f"📈 Индекс: {match['index']}\n"
-                                   f"----------------------------")
+                        response = (f'''
+🏆 {match['league']}
+
+⚽️ {match['teams']}
+
+--------------------------------------------
+⏰ Время матча: {match['date_str']}
+--------------------------------------------
+Индекс прохода ТБ: {match['index']}
+--------------------------------------------
+
+🔥 Прогноз: ТБ 2.5 : {match['odds']}
+
+''' 
+                           
+ 
+                                                                  )
                         bot.send_message(message.chat.id, response)
                         
                         # Добавляем матч в список отправленных
                         sent_matches.append(match)
+                        now = datetime.now()
+                        current_time = now.strftime("%H:%M:%S")
+                        print(current_time, 'Сигнал!')
                 else:
-                    bot.send_message(message.chat.id, "Новых подходящих матчей не найдено.")
+                    now = datetime.now()
+                    current_time = now.strftime("%H:%M:%S")
+                    print(current_time, 'Не найдено!')
             else:
-                bot.send_message(message.chat.id, "На сегодня нет матчей, соответствующих заданным критериям.")
+                now = datetime.now()
+                current_time = now.strftime("%H:%M:%S")
+                print(current_time, 'Не найдено!')
             
             # Пауза перед следующим анализом (1 час)
             time.sleep(60)
